@@ -17,8 +17,13 @@
                  <li v-for="item in items">{{ item.name }}</li>
              </ul>
          </div>
-         <shop-list v-bind:shopping-items="items"></shop-list>
+         <shop-list v-bind:shopping-items="items"></shop-list> 
          <cart-input v-on:add-item="addItem"></cart-input>
+         <input type="checkbox" v-model="showOption">산 물건 보기
+         <bought-list 
+         v-bind:bought-items="items" 
+         v-show="showOption"
+         v-on:remove-item="removeItem"></bought-list>
          <cart-footer></cart-footer>
          
     </div>
@@ -56,6 +61,31 @@
                   }
              }
          }
+         //산 물건 목록
+         var boughtList = {
+             props: ["bought-items"],
+             template: `
+             <div>
+                <h2>산 물건들</h2>
+                <ul>
+                    <li v-for="(item, index) in boughtItems"
+                        v-if="item.buy">{{ item.name }}
+                        <button v-on:click="removeItem(item)">삭제</button>
+                        <button v-on:click="cancelBuy(item)">구매 취소</button>
+                    </li>
+                </ul>
+            </div> `,
+            methods:{
+                cancelBuy: function(item){
+                    item.buy = false;
+                },
+                removeItem: function(item){
+                    //부모로 삭제할 아이템을 전송
+                    console.log("삭제할 아이템:", item);
+                    this.$emit("remove-item",item);
+                }
+            }
+         }
          // cart input 컴포넌트
          var cartInput = {
              template: `
@@ -89,12 +119,14 @@
                  {name:"쪽파", buy:true},
                  {name:"고춧가루", buy:true},
                  ],
-                 showAll: false
+                 showAll: false,
+                 showOption: true 
                  
              },
              components: {
                  "shop-list":shoplist,
-                 "cart-input":cartInput
+                 "cart-input":cartInput,
+                 "bought-list":boughtList
              },
              methods:{
                  addItem: function(item){
@@ -104,6 +136,14 @@
                          name: item,
                          buy:false
                      })
+                 },
+                 removeItem: function(item){
+                     var index = this.items.indexof(item);
+                     if (index > -1) { //인덱스
+                        //배열에서 요소 삭제
+                        this.items.splice(index,1);
+
+                     }
                  }
              }
          })
